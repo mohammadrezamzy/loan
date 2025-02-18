@@ -15,6 +15,12 @@
       min-height: 100vh;
       background-color: #f3f4f6;
     }
+    .container {
+      text-align: center;
+    }
+    .button-container {
+      margin-bottom: 20px;
+    }
     .calculator {
       background: white;
       padding: 20px;
@@ -22,6 +28,7 @@
       box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
       width: 100%;
       max-width: 400px;
+      display: none;
     }
     .calculator h1 {
       font-size: 1.5rem;
@@ -32,11 +39,12 @@
       display: block;
       margin-bottom: 8px;
       font-weight: bold;
+      text-align: left;
     }
     .calculator input {
       width: 100%;
       padding: 10px;
-      margin-bottom: 20px;
+      margin-bottom: 15px;
       border: 1px solid #ccc;
       border-radius: 5px;
     }
@@ -64,40 +72,68 @@
   </style>
 </head>
 <body>
-  <div class="calculator">
-    <h1>محاسبه وام</h1>
-    <label for="amount">مقدار مبلغ درخواستی (ریال):</label>
-    <input type="text" id="amount" placeholder="Enter loan amount" oninput="formatInput(this)">
+  <div class="container">
+    <div class="button-container">
+      <button onclick="showCalculator('bazari')">بازاری</button>
+      <button onclick="showCalculator('banki')">بانکی</button>
+    </div>
+    <div id="bazari" class="calculator">
+      <h1>محاسبه وام</h1>
+      <label for="amount">مقدار مبلغ درخواستی (ریال):</label>
+      <input type="text" id="amount" placeholder="Enter loan amount" oninput="formatInput(this)">
 
-    <label for="installments">چند ماهه:</label>
-    <input type="number" id="installments" placeholder="Enter number of installments">
+      <label for="installments">چند ماهه:</label>
+      <input type="number" id="installments" placeholder="Enter number of installments">
 
-    <label for="interestRate">نرخ سود (%) :</label>
-    <input type="number" id="interestRate" placeholder="Enter interest rate">
+      <label for="interestRate">نرخ سود (%) :</label>
+      <input type="number" id="interestRate" placeholder="Enter interest rate">
 
-    <button onclick="calculateInstallment()">محاسبه اقساط</button>
+      <button onclick="calculateInstallment()">محاسبه اقساط</button>
+      <div id="result" class="result" style="display: none;"></div>
+    </div>
 
-    <div id="result" class="result" style="display: none;"></div>
+    <div id="banki" class="calculator">
+      <h1>محاسبه وام بانکی</h1>
+      <label for="bankAmount">مبلغ وام (ریال):</label>
+      <input type="text" id="bankAmount" placeholder="Enter loan amount" oninput="formatInput(this)">
+
+      <label for="totalMonths">تعداد ماه های کل اقساط:</label>
+      <input type="number" id="totalMonths" placeholder="Enter total months">
+
+      <label for="checkMonths">چند ماه چند ماه چک بدهید:</label>
+      <input type="number" id="checkMonths" placeholder="Enter check intervals">
+
+      <label for="bankInterest">نرخ سود (%) :</label>
+      <input type="number" id="bankInterest" placeholder="Enter interest rate">
+
+      <button onclick="calculateBankInstallment()">محاسبه اقساط</button>
+      <div id="bankResult" class="result" style="display: none;"></div>
+    </div>
   </div>
 
   <script>
+    function showCalculator(type) {
+      document.getElementById('bazari').style.display = type === 'bazari' ? 'block' : 'none';
+      document.getElementById('banki').style.display = type === 'banki' ? 'block' : 'none';
+    }
+
     function formatNumber(num) {
       return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
     }
 
     function formatInput(input) {
-      let value = input.value.replace(/,/g, ''); // Remove existing commas
+      let value = input.value.replace(/,/g, ''); 
       value = formatNumber(value);
       input.value = value;
     }
 
     function calculateInstallment() {
-      const amount = parseFloat(document.getElementById('amount').value.replace(/,/g, '')) || 0; // Remove commas before parsing
+      const amount = parseFloat(document.getElementById('amount').value.replace(/,/g, '')) || 0;
       const installments = parseInt(document.getElementById('installments').value) || 1;
-      const interestRate = parseFloat(document.getElementById('interestRate').value) || 6.5; // Default to 6.5 if not provided
+      const interestRate = parseFloat(document.getElementById('interestRate').value) || 6.5;
 
       if (amount <= 0 || installments <= 0 || interestRate <= 0) {
-        alert('Please enter valid values for amount, installments, and interest rate.');
+        alert('لطفا مقادیر معتبر وارد کنید.');
         return;
       }
 
@@ -107,7 +143,25 @@
 
       const resultDiv = document.getElementById('result');
       resultDiv.style.display = 'block';
-      resultDiv.innerHTML = `<p>مبلغ هر قسط: <strong>${formatNumber(monthlyInstallment.toFixed(2))}</strong> (ریال)</p>`;
+      resultDiv.innerHTML = `<p>مبلغ هر قسط: <strong>${formatNumber(monthlyInstallment.toFixed(2))}</strong> ریال</p>`;
+    }
+
+    function calculateBankInstallment() {
+      const amount = parseFloat(document.getElementById('bankAmount').value.replace(/,/g, '')) || 0;
+      const totalMonths = parseInt(document.getElementById('totalMonths').value) || 0;
+      const checkMonths = parseInt(document.getElementById('checkMonths').value) || 0;
+      const interestRate = parseFloat(document.getElementById('bankInterest').value) || 0;
+
+      if (amount <= 0 || totalMonths <= 0 || checkMonths <= 0 || interestRate <= 0) {
+        alert('لطفا مقادیر معتبر وارد کنید.');
+        return;
+      }
+
+      const installment = (amount * interestRate * (totalMonths + checkMonths)) / 2400;
+
+      const resultDiv = document.getElementById('bankResult');
+      resultDiv.style.display = 'block';
+      resultDiv.innerHTML = `<p>مبلغ هر قسط: <strong>${formatNumber(installment.toFixed(2))}</strong> ریال</p>`;
     }
   </script>
 </body>
